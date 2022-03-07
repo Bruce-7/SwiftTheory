@@ -19,7 +19,7 @@
   - [Objective-C与swift的区分调用](#objective-c与swift的区分调用)
   - [源码分析](#源码分析)
   - [实践](#实践)
-  
+
 # 一、结构体
 在`swift`的标准库中，绝大多数的公开类型都是结构体，而枚举和类只占很小一部分。比如 `Bool、Int、Double、String、Array、Dictionary`等常见类型都是结构体。
 
@@ -376,22 +376,34 @@ inline size_t instanceSize(size_t extraBytes) const {
 
 通过Xcode的菜单栏->Debug->Debug Workflow->Always Show Disassembly打开汇编调试。
 
+如下图1：
 ![](media/16463009789251/16463629860793.jpg)
 
 通过汇编查看，`Person`在进行初始化的时候，在底层会调用`Person.__allocating_init()`的函数，那么`__allocating_init()`做了什么事情呢，我们继续跟进去看一下。
 
 在控制台`(lldb)`输入`ni或n`指令让断点走到画红线的地方或者直接在10行打断点然后控制台`(lldb)`输入一个`c`直接断到`Person.__allocating_init()`这一行代码，再在控制台`(lldb)`输入一个`si或s`指令，进入此函数。
 
-如下图：
+如下图2：
 
 ![](media/16463009789251/16463634451366.jpg)
 
 可以看到，进入到`Person.__allocating_init()`的内部实现后，发现它会调用一个`swift_allocObject`函数，那么在继续跟汇编的时候跟丢了。
 
-如下图：
+如下图3：
 
 ![](media/16463009789251/16463640141314.jpg)
-接下来我们来看一下[swift](https://github.com/apple/swift)源码。用自己喜欢的IDE打开下载好的`swift`源码，全局搜索`swift_allocObject`这个函数。在`HeapObject.cpp`文件中找到`swift_allocObject`函数的实现，并且在`swift_allocObject`函数的实现上方，有一个`_swift_allocObject_`函数的实现。
+接下来我们来看一下[swift](https://github.com/apple/swift)源码。用自己喜欢的IDE打开下载好的`swift`源码，全局搜索`swift_allocObject`这个函数。在`HeapObject.cpp`文件中找到`swift_allocObject`函数的实现。
+
+如下代码：
+```
+HeapObject *swift::swift_allocObject(HeapMetadata const *metadata,
+                                     size_t requiredSize,
+                                     size_t requiredAlignmentMask) {
+  CALL_IMPL(swift_allocObject, (metadata, requiredSize, requiredAlignmentMask));
+}
+```
+
+第一个参数`metadata`可以如`图1`的第8行 `bl 0x1006dccc8`返回，其实在`swift_allocObject`函数的内部调用`CALL_IMPL`就等于胶水前后拼接`_`，因此实际调用`_swift_allocObject_`函数的实现。
 
 如下代码：
 
