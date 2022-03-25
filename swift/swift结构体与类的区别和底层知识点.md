@@ -1,25 +1,5 @@
 # swift结构体与类的区别和底层知识点
-- [swift结构体与类的区别和底层知识点](#swift结构体与类的区别和底层知识点)
-- [一、结构体](#一结构体)
-  - [初始化器](#初始化器)
-  - [自定义初始化器](#自定义初始化器)
-  - [内存结构](#内存结构)
-- [二、类](#二类)
-  - [指定初始化器](#指定初始化器)
-  - [可失败初始化器](#可失败初始化器)
-  - [必要初始化器](#必要初始化器)
-  - [便捷初始化器](#便捷初始化器)
-- [三、结构体与类的本质区别](#三结构体与类的本质区别)
-  - [值类型](#值类型)
-  - [引用类型](#引用类型)
-- [四、结构体与类的选择](#四结构体与类的选择)
-- [五、类的实例占用内存大小](#五类的实例占用内存大小)
-- [六、类的初始化流程](#六类的初始化流程)
-- [七、swift类的源码结构](#七swift类的源码结构)
-  - [Objective-C与swift的区分调用](#objective-c与swift的区分调用)
-  - [源码分析](#源码分析)
-  - [实践](#实践)
-
+[toc]
 # 一、结构体
 在`swift`的标准库中，绝大多数的公开类型都是结构体，而枚举和类只占很小一部分。比如 `Bool、Int、Double、String、Array、Dictionary`等常见类型都是结构体。
 
@@ -48,7 +28,7 @@ let p = Person(age: 20, name: "爱德华")
 
 如下代码：
 
-```
+```swift
 struct Person {
     var age: Int
     var name: String
@@ -67,7 +47,7 @@ let p = Person(age: 10)
 ## 内存结构
 我们来看如下代码：
 
-```
+```swift
 struct Person {
     var age: Int
     var weight: Int
@@ -91,7 +71,7 @@ MemoryLayout更多知识参考swift源码或[MemoryLayout](https://juejin.cn/pos
 
 如下代码：
 
-```
+```swift
 class Person {
     var age: Int = 10
     var name: String = "爱德华"
@@ -102,7 +82,7 @@ let p = Person()
 
 如果类的所有成员都在定义的时候指定了初始值，编译器会为类生成无参的初始化器，成员的初始化是在这个初始化器中完成的，其实底层等同于如下代码：
 
-```
+```swift
 class Person {
     var age: Int
     var name: String
@@ -121,7 +101,7 @@ let p = Person(age: 10, name: "爱德华")
 
 如下代码：
 
-```
+```swift
 class Person {
     var age: Int
     var name: String
@@ -152,7 +132,7 @@ p2 - Optional(SwiftTest.Person)
 
 如下代码：
 
-```
+```swift
 class Person {
     var age: Int
     var name: String
@@ -186,7 +166,7 @@ class Student: Person {
 
 如下代码：
 
-```
+```swift
 class Person {
     var age: Int
     var name: String
@@ -209,7 +189,7 @@ class Person {
 
 如下代码：
 
-```
+```swift
 class Person {
     var age = 18
     var height = 180
@@ -235,7 +215,7 @@ let point = Point()
 
 如下代码：
 
-```
+```swift
 struct Point {
     var x = 4;
     var y = 8;
@@ -258,7 +238,7 @@ p2 - Point(x: 6, y: 8)
 
 如下代码：
 
-```
+```swift
 var a1 = [1, 2, 3]
 var a2 = a1
 
@@ -283,7 +263,7 @@ a2 - [1, 2, 3, 4]
 
 如下代码：
 
-```
+```swift
 class Person {
     var age: Int = 18
     var name: String = "爱德华"
@@ -325,7 +305,7 @@ p2-age =  30
 # 五、类的实例占用内存大小
 看如下代码：
 
-```
+```swift
 class HDPoint  {
     var x = 10
     var y = 20
@@ -356,7 +336,7 @@ malloc_size：系统分配的内存大小。
 
 如下代码：
 
-```
+```c++
 inline size_t instanceSize(size_t extraBytes) const {
     if (fastpath(cache.hasFastInstanceSize(extraBytes))) {
         return cache.fastInstanceSize(extraBytes);
@@ -395,7 +375,7 @@ inline size_t instanceSize(size_t extraBytes) const {
 接下来我们来看一下[swift](https://github.com/apple/swift)源码。用自己喜欢的IDE打开下载好的`swift`源码，全局搜索`swift_allocObject`这个函数。在`HeapObject.cpp`文件中找到`swift_allocObject`函数的实现。
 
 如下代码：
-```
+```c++
 HeapObject *swift::swift_allocObject(HeapMetadata const *metadata,
                                      size_t requiredSize,
                                      size_t requiredAlignmentMask) {
@@ -407,7 +387,7 @@ HeapObject *swift::swift_allocObject(HeapMetadata const *metadata,
 
 如下代码：
 
-```
+```c++
 static HeapObject *_swift_allocObject_(HeapMetadata const *metadata,
                                        size_t requiredSize,
                                        size_t requiredAlignmentMask) {
@@ -433,7 +413,7 @@ static HeapObject *_swift_allocObject_(HeapMetadata const *metadata,
 
 如下代码：
 
-```
+```c++
 void *swift::swift_slowAlloc(size_t size, size_t alignMask) {
   void *p;
   // This check also forces "default" alignment to use AlignedAlloc.
@@ -467,7 +447,7 @@ void *swift::swift_slowAlloc(size_t size, size_t alignMask) {
 ## Objective-C与swift的区分调用
 在调用``_swift_allocObject_``函数的时候有一个参数，名为`metadata`的`HeapMetadata`。跳转到`HeapMetadata`呈现如下代码：
 
-```
+```c++
 #ifndef __swift__
 #include <type_traits>
 #include "swift/Basic/type_traits.h"
@@ -492,7 +472,7 @@ typedef struct HeapObject HeapObject;
 
 如下代码：
 
-```
+```c++
 /// The common structure of all metadata for heap-allocated types.  A
 /// pointer to one of these can be retrieved by loading the 'isa'
 /// field of any heap object, whether it was managed by Swift or by
@@ -516,7 +496,7 @@ using HeapMetadata = TargetHeapMetadata<InProcess>;
 
 `MetadataKind`是一个`uint32_t`的类型，如下代码：
 
-```
+```c++
 enum class MetadataKind : uint32_t {
 #define METADATAKIND(name, value) name = value,
 #define ABSTRACTMETADATAKIND(name, start, end)                                 \
@@ -537,7 +517,7 @@ enum class MetadataKind : uint32_t {
 
 在`ReflectionMirror.swift`文件中`MetadataKind`的类型如下代码：
 
-```
+```c++
 /// The metadata "kind" for a type.
 @available(SwiftStdlib 5.2, *)
 @_spi(Reflection)
@@ -578,7 +558,7 @@ public enum _MetadataKind: UInt {
 ## 源码分析
 接下来我们找到`TargetHeapMetadata`的继承`TargetMetadata`（在`C++`中结构体是允许继承的）。在`TargetMetadata`结构体中找到了`getTypeContextDescriptor`函数，如下代码：
 
-```
+```c++
 /// Get the nominal type descriptor if this metadata describes a nominal type,
 /// or return null if it does not.
 ConstTargetMetadataPointer<Runtime, TargetTypeContextDescriptor>
@@ -621,7 +601,7 @@ getTypeContextDescriptor() const {
 
 如下代码：
 
-```
+```c++
 /// The structure of all class metadata.  This structure is embedded
 /// directly within the class's heap metadata structure and therefore
 /// cannot be extended without an ABI break.
@@ -703,7 +683,7 @@ struct TargetClassMetadata : public TargetAnyClassMetadataVariant {
 
 如下代码：
 
-```
+```c++
 /// The portion of a class metadata object that is compatible with
 /// all classes, even non-Swift ones.
 template <typename Runtime>
@@ -750,7 +730,7 @@ public:
 
 如下代码：
 
-```
+```swift
 struct Metadata {
     var kind: Int
     var superClass: Any.Type
@@ -772,7 +752,7 @@ struct Metadata {
 
 如下代码：
 
-```
+```c++
 /// The Swift heap-object header.
 /// This must match RefCountedStructTy in IRGen.
 struct HeapObject {
@@ -809,7 +789,7 @@ struct HeapObject {
 
 如下代码：
 
-```
+```swift
 struct HeapObject {
     var metadata: UnsafeRawPointer
     var refCounts: UInt32
@@ -820,7 +800,7 @@ struct HeapObject {
 
 如下代码：
 
-```
+```swift
 class Person {
     var age = 18
     var name = "爱德华"
