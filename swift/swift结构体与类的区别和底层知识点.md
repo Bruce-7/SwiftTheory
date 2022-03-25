@@ -356,7 +356,7 @@ malloc_size：系统分配的内存大小。
 
 如下代码：
 
-```c++
+```cpp
 inline size_t instanceSize(size_t extraBytes) const {
     if (fastpath(cache.hasFastInstanceSize(extraBytes))) {
         return cache.fastInstanceSize(extraBytes);
@@ -395,7 +395,7 @@ inline size_t instanceSize(size_t extraBytes) const {
 接下来我们来看一下[swift](https://github.com/apple/swift)源码。用自己喜欢的IDE打开下载好的`swift`源码，全局搜索`swift_allocObject`这个函数。在`HeapObject.cpp`文件中找到`swift_allocObject`函数的实现。
 
 如下代码：
-```c++
+```cpp
 HeapObject *swift::swift_allocObject(HeapMetadata const *metadata,
                                      size_t requiredSize,
                                      size_t requiredAlignmentMask) {
@@ -407,7 +407,7 @@ HeapObject *swift::swift_allocObject(HeapMetadata const *metadata,
 
 如下代码：
 
-```c++
+```cpp
 static HeapObject *_swift_allocObject_(HeapMetadata const *metadata,
                                        size_t requiredSize,
                                        size_t requiredAlignmentMask) {
@@ -433,7 +433,7 @@ static HeapObject *_swift_allocObject_(HeapMetadata const *metadata,
 
 如下代码：
 
-```c++
+```cpp
 void *swift::swift_slowAlloc(size_t size, size_t alignMask) {
   void *p;
   // This check also forces "default" alignment to use AlignedAlloc.
@@ -467,7 +467,7 @@ void *swift::swift_slowAlloc(size_t size, size_t alignMask) {
 ## Objective-C与swift的区分调用
 在调用``_swift_allocObject_``函数的时候有一个参数，名为`metadata`的`HeapMetadata`。跳转到`HeapMetadata`呈现如下代码：
 
-```c++
+```cpp
 #ifndef __swift__
 #include <type_traits>
 #include "swift/Basic/type_traits.h"
@@ -492,7 +492,7 @@ typedef struct HeapObject HeapObject;
 
 如下代码：
 
-```c++
+```cpp
 /// The common structure of all metadata for heap-allocated types.  A
 /// pointer to one of these can be retrieved by loading the 'isa'
 /// field of any heap object, whether it was managed by Swift or by
@@ -516,7 +516,7 @@ using HeapMetadata = TargetHeapMetadata<InProcess>;
 
 `MetadataKind`是一个`uint32_t`的类型，如下代码：
 
-```c++
+```cpp
 enum class MetadataKind : uint32_t {
 #define METADATAKIND(name, value) name = value,
 #define ABSTRACTMETADATAKIND(name, start, end)                                 \
@@ -537,7 +537,7 @@ enum class MetadataKind : uint32_t {
 
 在`ReflectionMirror.swift`文件中`MetadataKind`的类型如下代码：
 
-```c++
+```cpp
 /// The metadata "kind" for a type.
 @available(SwiftStdlib 5.2, *)
 @_spi(Reflection)
@@ -578,7 +578,7 @@ public enum _MetadataKind: UInt {
 ## 源码分析
 接下来我们找到`TargetHeapMetadata`的继承`TargetMetadata`（在`C++`中结构体是允许继承的）。在`TargetMetadata`结构体中找到了`getTypeContextDescriptor`函数，如下代码：
 
-```c++
+```cpp
 /// Get the nominal type descriptor if this metadata describes a nominal type,
 /// or return null if it does not.
 ConstTargetMetadataPointer<Runtime, TargetTypeContextDescriptor>
@@ -621,7 +621,7 @@ getTypeContextDescriptor() const {
 
 如下代码：
 
-```c++
+```cpp
 /// The structure of all class metadata.  This structure is embedded
 /// directly within the class's heap metadata structure and therefore
 /// cannot be extended without an ABI break.
@@ -703,7 +703,7 @@ struct TargetClassMetadata : public TargetAnyClassMetadataVariant {
 
 如下代码：
 
-```c++
+```cpp
 /// The portion of a class metadata object that is compatible with
 /// all classes, even non-Swift ones.
 template <typename Runtime>
@@ -772,7 +772,7 @@ struct Metadata {
 
 如下代码：
 
-```c++
+```cpp
 /// The Swift heap-object header.
 /// This must match RefCountedStructTy in IRGen.
 struct HeapObject {
